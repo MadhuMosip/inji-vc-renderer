@@ -25,7 +25,12 @@ class JsonPointerResolver(private val traceabilityId: String) {
         qrCodeData: String?
     ): String {
         val svgWithQrCodeReplaced = replaceQrCodePlaceholder(svg, vcJsonString, qrCodeData)
-        return replaceVcPlaceholders(svgWithQrCodeReplaced, vcJsonNode, renderMethodElement)
+        val svgWithValues = replaceVcPlaceholders(svgWithQrCodeReplaced, vcJsonNode, renderMethodElement)
+        return removeImagesWithUnresolvedHref(svgWithValues)
+    }
+
+    private fun removeImagesWithUnresolvedHref(svg: String): String {
+        return MISSING_HREF_IMAGE_REGEX.replace(svg, "")
     }
 
     private fun replaceVcPlaceholders(svg: String, vcJsonNode: JsonNode, element: JsonNode): String {
@@ -106,5 +111,9 @@ class JsonPointerResolver(private val traceabilityId: String) {
 
     companion object {
         private val PLACEHOLDER_REGEX = Regex("\\{\\{(/[^}]*)\\}\\}|\\{\\{\\}\\}")
+        private val MISSING_HREF_IMAGE_REGEX = Regex(
+            """<image\b[^>]*?\s(?:xlink:)?href\s*=\s*["']-["'][^>]*/>""" +
+                """|<image\b[^>]*?\s(?:xlink:)?href\s*=\s*["']-["'][^>]*>\s*</image>"""
+        )
     }
 }

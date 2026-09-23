@@ -293,4 +293,34 @@ class JsonPointerResolverTest {
         val result = JsonPointerResolver("test-trace-id").replacePlaceholders(svgTemplateWithLocale, processedJson, listOf("/credentialSubject/gender/0/value"));
         assertEquals(expected, result)
     }
+
+    @Test
+    fun `missing face image is removed and text dash is kept`() {
+        val svg = "<svg><text>{{/credentialSubject/email}}</text>" +
+            "<image id=\"portrait\" xlink:href=\"{{/credentialSubject/face}}\"/>" +
+            "<image id=\"logo\" xlink:href=\"data:image/png;base64,abc\"/></svg>"
+        val vc = mapper.readTree("""{"credentialSubject":{"fullName":"John"}}""")
+        val renderMethod = mapper.readTree("""{"type":"TemplateRenderMethod"}""")
+
+        val result = JsonPointerResolver("test-trace-id").replaceSvgPlaceholders(svg, vc, renderMethod, "{}", null)
+
+        assertEquals(
+            "<svg><text>-</text><image id=\"logo\" xlink:href=\"data:image/png;base64,abc\"/></svg>",
+            result
+        )
+    }
+
+    @Test
+    fun `face data uri image is kept`() {
+        val svg = "<svg><image id=\"portrait\" xlink:href=\"{{/credentialSubject/face}}\"/></svg>"
+        val vc = mapper.readTree("""{"credentialSubject":{"face":"data:image/jpeg;base64,xyz"}}""")
+        val renderMethod = mapper.readTree("""{"type":"TemplateRenderMethod"}""")
+
+        val result = JsonPointerResolver("test-trace-id").replaceSvgPlaceholders(svg, vc, renderMethod, "{}", null)
+
+        assertEquals(
+            "<svg><image id=\"portrait\" xlink:href=\"data:image/jpeg;base64,xyz\"/></svg>",
+            result
+        )
+    }
 }
