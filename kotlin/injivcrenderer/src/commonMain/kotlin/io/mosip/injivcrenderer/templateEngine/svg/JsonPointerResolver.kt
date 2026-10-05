@@ -34,7 +34,7 @@ class JsonPointerResolver(private val traceabilityId: String) {
      * dummy portrait instead. That picture already includes the "No Image Available" label.
      * A normal base64 photo is left unchanged. Text that resolved to "-" is left unchanged.
      */
-    internal fun replaceInvalidImageHrefs(svg: String): String {
+    private fun replaceInvalidImageHrefs(svg: String): String {
         return IMAGE_TAG_REGEX.replace(svg) { imageMatch ->
             HREF_ATTR_REGEX.replace(imageMatch.value) { hrefMatch ->
                 val value = hrefMatch.groupValues[3]
@@ -135,8 +135,4 @@ class JsonPointerResolver(private val traceabilityId: String) {
             setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
         )
     }
-}
-
-internal fun sanitizeSvgImageHrefs(svg: String): String {
-    return JsonPointerResolver("").replaceInvalidImageHrefs(svg)
 }
